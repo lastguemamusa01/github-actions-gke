@@ -47,7 +47,7 @@ jobs:
 
       - name: Get GKE Credentials
         run: |-
-          gcloud app deploy ~/my_app/app.yaml --project="$PROJECT_ID"
+          gcloud config set project "$PROJECT_ID"
           gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
 
       - name: Bulild Docker Image
