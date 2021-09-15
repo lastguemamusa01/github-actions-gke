@@ -26,9 +26,9 @@ jobs:
       - name: Setup JDK.1.8
         uses: actions/setup-java@v1
         with:
-          java-version: 11
+          java-version: 1.8
           server-id: github
-          settings-oath: ${{ github.workspace }}
+          settings-path: ${{ github.workspace }}
 
       - name: Build with gradle
         run: ./gradlew clean build -x test
@@ -39,7 +39,7 @@ jobs:
           ACTIONS_ALLOW_UNSECURE_COMMANDS: true
         with:
           service_account_key: ${{secrets.GKE_SA_KEY}}
-          project_id: ${{secrets.GEK_PROJECT}}
+          project_id: ${{secrets.GKE_PROJECT}}
 
       - name: Configure Docker
         run: |-
@@ -47,25 +47,24 @@ jobs:
 
       - name: Get GKE Credentials
         run: |-
-          gcloud config set project "$PROJECT_ID"
           gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
 
-      - name: Bulild Docker Image
+      - name: Build Docker Image
         run: |-
-          docker build -t --tag "gcr.io/$PROJECT_ID/$IMAGE:$TAG" .
+          docker build --tag "gcr.io/$PROJECT_ID/$IMAGE:$TAG" .
 
       - name: Publish Docker Image to GCR
         run: |-
           docker push "gcr.io/$PROJECT_ID/$IMAGE:$TAG"
 
-      - name: Set Up Kustomize
+      - name: Set up Kustomize
         run: |-
-          curl -sfLo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v3.2.3/kustomize_kustomize.v3.2.3_linux_amd64
+          curl -sfLo kustomize https://github.com/kubernetes-sigs/kustomize/releases/download/v3.1.0/kustomize_3.1.0_linux_amd64
           chmod u+x ./kustomize
 
-      - name: Deploy Image to GKE Cluster
+      - name: Deploy Image to GKE cluster
         run: |-
-          ./kustomize edit set image gc.io/PROJECT_ID/IMAGE:TAG=gcr.io/$PROJECT_ID/$IMAGE:$TAG
+          ./kustomize edit set image gcr.io/PROJECT_ID/IMAGE:TAG=gcr.io/$PROJECT_ID/$IMAGE:$TAG
           ./kustomize build . | kubectl apply -f -
           kubectl rollout status deployment/$DEPLOYMENT_NAME
           kubectl get services -o wide
