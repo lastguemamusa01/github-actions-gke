@@ -1,9 +1,7 @@
-FROM openjdk:8-jre-slim
+FROM openjdk:8-jdk-alpine
 
 EXPOSE 8080
 
-RUN mkdir /app
+ADD /build/libs/github-actions-gke-0.0.1-SNAPSHOT.jar app.jar
 
-COPY build/libs/*.jar /app/spring-boot-application.jar
-
-ENTRYPOINT ["java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app/spring-boot-application.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
